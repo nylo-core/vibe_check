@@ -1,0 +1,16 @@
+name: vibe_check_example
+description: Example app demonstrating the vibe_check lint rules.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  vibe_check:
+    path: ../
+  flutter_lints: ^6.0.0

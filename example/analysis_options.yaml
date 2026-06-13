@@ -1,0 +1,19 @@
+# Enables the vibe_check plugin for this example app. `plugins` is a top-level
+# section in the new analyzer plugin system (not nested under `analyzer`).
+plugins:
+  vibe_check:
+    path: ../
+    diagnostics:
+      inline_async_in_builder: true
+      redundant_null_check: true
+      swallowed_exception: true
+
+# Companion *core* Dart lints that pair well with vibe_check (they are NOT part
+# of vibe_check). `specify_nonobvious_local_variable_types` flags inferred locals
+# whose type is not obvious from the initializer — the classic AI pattern
+# `final x = user.name`, which should be `final String x = user.name`. See the
+# README "Pairs well with" section.
+linter:
+  rules:
+    - specify_nonobvious_local_variable_types
+    - specify_nonobvious_property_types
