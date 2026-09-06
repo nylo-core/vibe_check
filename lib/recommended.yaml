@@ -1,0 +1,52 @@
+# vibe_check — recommended baseline.
+#
+# The preset most projects should adopt: vibe_check's own rules plus the core
+# Dart lints that best catch AI type-omission slop, tuned for near-zero false
+# positives so it's safe to leave on across a team.
+#
+# Adopt with a one-line include (add vibe_check as a dev_dependency first —
+# that is what lets the `include:` resolve):
+#
+#   # analysis_options.yaml
+#   include:
+#     - package:flutter_lints/flutter.yaml
+#     - package:vibe_check/recommended.yaml
+#
+# That is the whole configuration. This file declares the plugin itself —
+# where to load it from and which rules are on — so there is NO `plugins:`
+# section to write in your own file. Don't add one: the analyzer keeps a
+# single configuration per plugin name and a `vibe_check:` entry in your
+# analysis_options.yaml (even just `version: ^1.0.0`) replaces this one
+# wholesale, switching every rule below off again. To hand-pick rules instead,
+# declare the plugin yourself and skip the include; the `diagnostics:` block
+# below is written to be copied.
+#
+# This preset does NOT bundle `flutter_lints` — it stays framework-agnostic, so
+# the base config above is yours to pick (`flutter_lints`, `lints/recommended`,
+# or none). Only `package:vibe_check/nylo.yaml` bundles it, since a Nylo app is
+# always a Flutter app.
+#
+# Want blanket type annotations (flag even obvious cases like `final x = true`)?
+# Use `package:vibe_check/strict.yaml` instead — include one preset, not both.
+
+# vibe_check's own rules.
+plugins:
+  vibe_check:
+    # Where the plugin loads from. A relative path here is resolved against
+    # this file, so `../` is always the vibe_check package that supplied the
+    # preset — the one your dev_dependency resolved, whether that lives in the
+    # pub cache or in a local checkout.
+    path: ../
+    diagnostics:
+      inline_async_in_builder: true
+      redundant_null_check: true
+      swallowed_exception: true
+
+# Companion core Dart lints. specify_nonobvious_* flags the AI pattern
+# `final user = fetchUser()` (type not obvious from the initializer) while
+# leaving obvious cases like `final x = true` alone — high signal, near-zero
+# false positives. A plugin can't enable core lints, so they ride along here.
+linter:
+  rules:
+    - specify_nonobvious_local_variable_types
+    - specify_nonobvious_property_types

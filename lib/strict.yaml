@@ -1,0 +1,39 @@
+# vibe_check — strict preset (opt-in).
+#
+# Same vibe_check rules as recommended.yaml, but with blanket type annotations:
+# always_specify_types requires an explicit type on EVERY declaration, including
+# obvious ones like `final x = true`. More aggressive than the baseline — it also
+# flags idiomatic code such as `final c = TextEditingController();`.
+#
+# Include this OR recommended.yaml, never both: always_specify_types subsumes
+# specify_nonobvious_*, so enabling both double-reports the same declarations.
+#
+#   # analysis_options.yaml
+#   include:
+#     - package:flutter_lints/flutter.yaml
+#     - package:vibe_check/strict.yaml
+#
+# That is the whole configuration — this file declares the plugin itself, so
+# don't add a `plugins:` section of your own: a `vibe_check:` entry in your
+# analysis_options.yaml replaces this one wholesale and switches the rules
+# below off again. See recommended.yaml for the details.
+#
+# This preset does NOT bundle `flutter_lints` — it stays framework-agnostic, so
+# the base config above is yours to pick (`flutter_lints`, `lints/recommended`,
+# or none). Only `package:vibe_check/nylo.yaml` bundles it, since a Nylo app is
+# always a Flutter app.
+
+# vibe_check's own rules (same set as recommended.yaml).
+plugins:
+  vibe_check:
+    # Resolved against this file: always the vibe_check package that supplied
+    # the preset.
+    path: ../
+    diagnostics:
+      inline_async_in_builder: true
+      redundant_null_check: true
+      swallowed_exception: true
+
+linter:
+  rules:
+    - always_specify_types

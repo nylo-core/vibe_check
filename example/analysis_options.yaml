@@ -1,19 +1,29 @@
-# Enables the vibe_check plugin for this example app. `plugins` is a top-level
-# section in the new analyzer plugin system (not nested under `analyzer`).
-plugins:
-  vibe_check:
-    path: ../
-    diagnostics:
-      inline_async_in_builder: true
-      redundant_null_check: true
-      swallowed_exception: true
+# Dogfoods the published Nylo preset (`package:vibe_check/nylo.yaml`) the way a
+# consumer does: the include is the whole configuration. The preset declares
+# the plugin itself (`path: ../`, resolved relative to the preset file — so
+# through this project's `path: ../` dev_dependency it points at the repo
+# root), every vibe_check rule, the companion `specify_nonobvious_*` lints,
+# and — since the preset includes `package:flutter_lints/flutter.yaml` — the
+# Flutter baseline. It's a superset of `recommended.yaml`; the extra rule that
+# fires here is `nonstandard_nylo_page` (its plain-Flutter-page diagnostic
+# needs no Nylo dependency), while `unlocalized_string` is listed but off, as
+# in any Nylo app until it opts in.
+#
+# Note what is NOT here: a `plugins:` section. The analyzer keeps one
+# configuration per plugin name and a project-level `vibe_check:` entry would
+# replace the preset's wholesale, switching every rule off — so its absence is
+# the regression test for include-only adoption. Likewise `flutter_lints` is
+# not in example/pubspec.yaml: vibe_check declares it as a regular dependency,
+# so it resolves transitively and the include just works.
+#
+# Consequence for the triage surface — lib/triggers_lints.dart plus
+# lib/resources/pages/ (each rule fires once) and lib/clean.dart (must stay
+# diagnostic-free): core lints now overlap some vibe_check rules, e.g.
+# `empty_catches` fires alongside `swallowed_exception`. That is exactly what a
+# real Nylo consumer sees, so it stays.
+include:
+  - package:vibe_check/nylo.yaml
 
-# Companion *core* Dart lints that pair well with vibe_check (they are NOT part
-# of vibe_check). `specify_nonobvious_local_variable_types` flags inferred locals
-# whose type is not obvious from the initializer — the classic AI pattern
-# `final x = user.name`, which should be `final String x = user.name`. See the
-# README "Pairs well with" section.
-linter:
-  rules:
-    - specify_nonobvious_local_variable_types
-    - specify_nonobvious_property_types
+analyzer:
+  exclude:
+    - build/**

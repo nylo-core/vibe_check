@@ -2,8 +2,10 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 
 import 'src/rules/inline_async_in_builder.dart';
+import 'src/rules/nonstandard_nylo_page.dart';
 import 'src/rules/redundant_null_check.dart';
 import 'src/rules/swallowed_exception.dart';
+import 'src/rules/unlocalized_string.dart';
 
 /// The plugin entry point.
 ///
@@ -33,5 +35,56 @@ class VibeCheckPlugin extends Plugin {
 
     registry.registerLintRule(SwallowedException());
     registry.registerFixForRule(SwallowedException.code, InsertRethrowFix.new);
+
+    registry.registerLintRule(UnlocalizedString());
+
+    // One rule, many diagnostics: each shape violation has its own code (and
+    // fix), all sharing the `nonstandard_nylo_page` name so a single toggle
+    // or `// ignore:` covers them.
+    registry.registerLintRule(NonstandardNyloPage());
+    registry.registerFixForRule(
+      NonstandardNyloPage.flutterWidgetBase,
+      ExtendNyStatefulWidgetFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.missingRoutePath,
+      AddRoutePathFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.routePathType,
+      ConvertPathToRouteViewFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.missingChild,
+      AddSuperChildFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.createStateOverride,
+      AddSuperChildFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.childInstance,
+      WrapChildInClosureFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.stateBase,
+      ExtendNyPageFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.stateNyState,
+      ExtendNyPageFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.stateTypeArgument,
+      SetStateTypeArgumentFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.initStateOverride,
+      ConvertInitStateToInitFix.new,
+    );
+    registry.registerFixForRule(
+      NonstandardNyloPage.buildOverride,
+      RenameBuildToViewFix.new,
+    );
   }
 }

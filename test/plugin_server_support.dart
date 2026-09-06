@@ -9,9 +9,14 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' // ignore: implementation_imports
     as protocol;
+import 'package:analyzer_testing/configuration_files_mixin.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:async/async.dart';
 import 'package:vibe_check/main.dart';
+
+import 'nylo_mock_packages.dart';
 
 /// A fake plugin communication channel that records notifications and forwards
 /// requests to the in-process [PluginServer]. Mirrors the harness used by the
@@ -57,12 +62,31 @@ class _FakeChannel implements PluginCommunicationChannel {
 /// Drives the real [VibeCheckPlugin] inside an in-process [PluginServer] so
 /// tests can assert end-to-end diagnostics and apply quick-fixes — the same
 /// path the Dart Analysis Server uses, without an IDE.
-abstract class VibeCheckPluginServerTest with ResourceProviderMixin {
+///
+/// By default the package under test has no dependencies. A subclass that
+/// sets [addNyloPackages] gets the mock Flutter and Nylo packages resolved
+/// through a real `package_config.json`, so rules that match on Nylo's types
+/// can be exercised end to end.
+abstract class VibeCheckPluginServerTest
+    with ResourceProviderMixin, MockPackagesMixin, ConfigurationFilesMixin {
   final _channel = _FakeChannel();
   late final PluginServer _server;
 
   String get packagePath => convertPath('/package');
   String get filePath => join(packagePath, 'lib', 'test.dart');
+
+  /// Whether to resolve `package:flutter`, `package:nylo_support` and
+  /// `package:nylo_framework` (all mocks) for the package under test.
+  bool get addNyloPackages => false;
+
+  @override
+  bool get addFlutterPackageDep => addNyloPackages;
+
+  @override
+  String get packagesRootPath => convertPath('/packages');
+
+  @override
+  String get testPackageRootPath => packagePath;
 
   Future<void> setUp() async {
     createMockSdk(resourceProvider: resourceProvider, root: getFolder('/sdk'));
@@ -82,6 +106,9 @@ abstract class VibeCheckPluginServerTest with ResourceProviderMixin {
   }
 
   void _writeOptionsAndFile(String content) {
+    if (addNyloPackages) {
+      _writeNyloPackages();
+    }
     newAnalysisOptionsYamlFile(packagePath, '''
 plugins:
   vibe_check:
@@ -90,8 +117,26 @@ plugins:
       inline_async_in_builder: true
       redundant_null_check: true
       swallowed_exception: true
+      unlocalized_string: true
+      nonstandard_nylo_page: true
 ''');
     newFile(filePath, content);
+  }
+
+  /// Writes the mock Nylo packages and a `package_config.json` that resolves
+  /// them together with the mock Flutter package.
+  void _writeNyloPackages() {
+    final config = PackageConfigFileBuilder();
+    const packages = {
+      'nylo_support': nyloSupportSources,
+      'nylo_framework': nyloFrameworkSources,
+    };
+    for (final MapEntry(key: name, value: sources) in packages.entries) {
+      final root = '$packagesRootPath/$name';
+      sources.forEach((path, source) => newFile('$root/$path', source));
+      config.add(name: name, rootFolder: getFolder(root));
+    }
+    writePackageConfig2(packagePath, config: config, packageName: 'package');
   }
 
   /// Analyzes [content] with every vibe_check rule enabled and returns the
@@ -125,15 +170,19 @@ plugins:
 
   /// Applies the vibe_check quick-fix offered at [offset] in [content] and
   /// returns the resulting source. The built-in "ignore" fixes are skipped.
-  Future<String> applyFix(String content, int offset) async {
+  ///
+  /// When several vibe_check diagnostics share an offset, [kind] picks the fix
+  /// by the suffix of its `FixKind` id (e.g. `'addRoutePath'`).
+  Future<String> applyFix(String content, int offset, {String? kind}) async {
     await diagnostics(content);
     final result = await _server.handleEditGetFixes(
       protocol.EditGetFixesParams(filePath, offset),
     );
     final fixes = result.fixes.expand((f) => f.fixes);
-    final fix = fixes.firstWhere(
-      (f) => (f.change.id ?? '').startsWith('dart.fix.vibeCheck.'),
-    );
+    final wanted = kind == null
+        ? 'dart.fix.vibeCheck.'
+        : 'dart.fix.vibeCheck.$kind';
+    final fix = fixes.firstWhere((f) => (f.change.id ?? '').startsWith(wanted));
     return protocol.SourceEdit.applySequence(
       content,
       fix.change.edits.first.edits,

@@ -1,0 +1,73 @@
+# vibe_check — Nylo baseline.
+#
+# Everything in `recommended.yaml`, plus `flutter_lints` and the rules that only
+# make sense in a Nylo app. Use this preset in a Nylo project; use
+# `recommended.yaml` in a plain Flutter/Dart one.
+#
+# Adopt with a one-line include (add vibe_check as a dev_dependency first —
+# that is what lets the `include:` resolve):
+#
+#   # analysis_options.yaml
+#   include: package:vibe_check/nylo.yaml
+#
+# That is the whole configuration. This file declares the plugin itself —
+# where to load it from and which rules are on — so there is NO `plugins:`
+# section to write in your own file. Don't add one: the analyzer keeps a
+# single configuration per plugin name and a `vibe_check:` entry in your
+# analysis_options.yaml (even just `version: ^1.0.0`) replaces this one
+# wholesale, switching every rule below off again. To hand-pick rules instead,
+# declare the plugin yourself and skip the include; the `diagnostics:` block
+# below is written to be copied.
+#
+# Include exactly one vibe_check preset — `nylo.yaml`, `recommended.yaml` or
+# `strict.yaml` — never two.
+
+# Nylo apps are Flutter apps, so this preset carries the Flutter baseline itself
+# rather than making every project spell it out. vibe_check declares
+# flutter_lints as a regular dependency, so this resolves through the consuming
+# project's package config with nothing to add to its pubspec. Listing
+# `package:flutter_lints/flutter.yaml` in your own `include:` as well is
+# harmless — it just resolves to the same rules twice. Only `nylo.yaml` does
+# this; `recommended.yaml` and `strict.yaml` stay framework-agnostic.
+include: package:flutter_lints/flutter.yaml
+
+plugins:
+  vibe_check:
+    # Where the plugin loads from. A relative path here is resolved against
+    # this file, so `../` is always the vibe_check package that supplied the
+    # preset — the one your dev_dependency resolved, whether that lives in the
+    # pub cache or in a local checkout.
+    path: ../
+    diagnostics:
+      # The framework-agnostic baseline, identical to recommended.yaml.
+      inline_async_in_builder: true
+      redundant_null_check: true
+      swallowed_exception: true
+      # Nylo-only, opt-in: the localization rule. A user-visible string
+      # written as a bare literal in lib/resources/pages/ or
+      # lib/resources/widgets/ (info), and a translation key built by
+      # interpolation — `'Hello $name'.tr()`, which can never match a
+      # lang-file entry (warning, anywhere in the app). Off here because it
+      # only means something once an app adopts localization. To switch it on,
+      # declare the plugin in your own analysis_options.yaml — that block
+      # replaces this one, so copy this whole `diagnostics:` list and flip this
+      # line (the README's Configuration section has the exact recipe).
+      unlocalized_string: false
+      # Nylo-only: the page rule. Holds every page under lib/resources/pages/
+      # to the shape `metro make:page` generates — a class extending
+      # `NyStatefulWidget` rather than a plain Flutter widget, a
+      # `static RouteView path`, a `super(child: () => _XState())` constructor,
+      # an `NyPage<X>` state, `init` instead of `initState` and `view` instead
+      # of `build`. The naming and `NyState` checks are info; the ones that
+      # break the page (a plain Flutter widget, a `build` override, a missing
+      # `path` or `child:`) are warnings, and each has an IDE quick-fix. Inert
+      # outside lib/resources/pages/.
+      nonstandard_nylo_page: true
+
+# Companion core Dart lints, identical to recommended.yaml. specify_nonobvious_*
+# flags the AI pattern `final user = fetchUser()` (type not obvious from the
+# initializer) while leaving obvious cases like `final x = true` alone.
+linter:
+  rules:
+    - specify_nonobvious_local_variable_types
+    - specify_nonobvious_property_types

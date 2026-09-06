@@ -7,10 +7,13 @@ import 'package:analyzer/error/error.dart';
 
 import '../utils/flutter_types.dart';
 
-/// Flags a `FutureBuilder`/`StreamBuilder` whose `future:`/`stream:` argument is
-/// an expression *created during build* (a method call, a constructor call, or
-/// an inline `await`). Such futures are recreated on every rebuild, restarting
-/// the builder and flashing loading states.
+/// Flags an async builder widget whose `future:`/`stream:` argument is an
+/// expression *created during build* (a method call, a constructor call, or an
+/// inline `await`). Such futures are recreated on every rebuild, restarting the
+/// builder and flashing loading states.
+///
+/// Covers Flutter's `FutureBuilder`/`StreamBuilder` and Nylo's wrappers around
+/// them — `NyFutureBuilder` (Nylo 6) and `FutureWidget` (its Nylo 7 rename).
 ///
 /// A reference to a stored field or variable (the correct pattern) is not
 /// flagged, because that future was created elsewhere — once.
@@ -19,8 +22,8 @@ class InlineAsyncInBuilder extends AnalysisRule {
     : super(
         name: 'inline_async_in_builder',
         description:
-            'A Future/Stream constructed inline in a FutureBuilder or '
-            'StreamBuilder is recreated on every rebuild.',
+            'A Future/Stream constructed inline in a FutureBuilder, '
+            'StreamBuilder or Nylo FutureWidget is recreated on every rebuild.',
       );
 
   static const LintCode code = LintCode(
@@ -53,8 +56,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final type = node.staticType;
-    if (!isFutureBuilder(type) && !isStreamBuilder(type)) {
+    final parameters = asyncBuilderParameters(node.staticType);
+    if (parameters == null) {
       return;
     }
 
@@ -62,8 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (argument is! NamedArgument) {
         continue;
       }
-      final label = argument.name.lexeme;
-      if (label != 'future' && label != 'stream') {
+      if (!parameters.contains(argument.name.lexeme)) {
         continue;
       }
       final expression = argument.argumentExpression;

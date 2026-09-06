@@ -1,18 +1,46 @@
-// Test method names follow the snake_case convention required by
-// test_reflective_loader.
+// Test method names keep the snake_case convention, so `dart test -n <name>`
+// and `// ignore:` references from before the move off test_reflective_loader
+// still resolve.
 // ignore_for_file: non_constant_identifier_names
-import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:test/test.dart';
 import 'package:vibe_check/src/rules/redundant_null_check.dart';
 
 import 'rule_test_support.dart';
 
 void main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(RedundantNullCheckTest);
+  group('RedundantNullCheckTest', () {
+    late RedundantNullCheckTest t;
+    setUp(() => t = RedundantNullCheckTest()..setUp());
+    tearDown(() => t.tearDown());
+
+    test(
+      'test_notEqualNull_onNonNullable_fires',
+      () => t.test_notEqualNull_onNonNullable_fires(),
+    );
+    test(
+      'test_equalNull_onNonNullable_fires',
+      () => t.test_equalNull_onNonNullable_fires(),
+    );
+    test(
+      'test_ifNull_onNonNullable_fires',
+      () => t.test_ifNull_onNonNullable_fires(),
+    );
+    test(
+      'test_bang_onNonNullable_fires',
+      () => t.test_bang_onNonNullable_fires(),
+    );
+    test(
+      'test_notEqualNull_onNullable_clean',
+      () => t.test_notEqualNull_onNullable_clean(),
+    );
+    test(
+      'test_ifNull_onNullable_clean',
+      () => t.test_ifNull_onNullable_clean(),
+    );
+    test('test_dynamic_clean', () => t.test_dynamic_clean());
   });
 }
 
-@reflectiveTest
 class RedundantNullCheckTest extends VibeCheckRuleTest {
   @override
   void setUp() {

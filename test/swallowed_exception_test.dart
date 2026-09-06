@@ -1,18 +1,34 @@
-// Test method names follow the snake_case convention required by
-// test_reflective_loader.
+// Test method names keep the snake_case convention, so `dart test -n <name>`
+// and `// ignore:` references from before the move off test_reflective_loader
+// still resolve.
 // ignore_for_file: non_constant_identifier_names
-import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:test/test.dart';
 import 'package:vibe_check/src/rules/swallowed_exception.dart';
 
 import 'rule_test_support.dart';
 
 void main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(SwallowedExceptionTest);
+  group('SwallowedExceptionTest', () {
+    late SwallowedExceptionTest t;
+    setUp(() => t = SwallowedExceptionTest()..setUp());
+    tearDown(() => t.tearDown());
+
+    test('test_emptyCatch_fires', () => t.test_emptyCatch_fires());
+    test('test_swallowingBody_fires', () => t.test_swallowingBody_fires());
+    test('test_rethrow_clean', () => t.test_rethrow_clean());
+    test('test_logsException_clean', () => t.test_logsException_clean());
+    test('test_usesException_clean', () => t.test_usesException_clean());
+    test(
+      'test_loggingCallWithoutExceptionReference_clean',
+      () => t.test_loggingCallWithoutExceptionReference_clean(),
+    );
+    test(
+      'test_onClauseWithoutParameter_emptyBody_fires',
+      () => t.test_onClauseWithoutParameter_emptyBody_fires(),
+    );
   });
 }
 
-@reflectiveTest
 class SwallowedExceptionTest extends VibeCheckRuleTest {
   @override
   void setUp() {
