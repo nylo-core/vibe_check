@@ -51,7 +51,7 @@ plugins:
       # only means something once an app adopts localization. To switch it on,
       # declare the plugin in your own analysis_options.yaml — that block
       # replaces this one, so copy this whole `diagnostics:` list and flip this
-      # line (the README's Configuration section has the exact recipe).
+      # line (the README's "Changing the rules" section has the recipe).
       unlocalized_string: false
       # Nylo-only: the page rule. Holds every page under lib/resources/pages/
       # to the shape `metro make:page` generates — a class extending

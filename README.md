@@ -16,7 +16,7 @@ hides a bug. Most findings come with a quick-fix.
 ```yaml
 # pubspec.yaml
 dev_dependencies:
-  vibe_check: ^1.0.0
+  vibe_check: ^1.0.1
 ```
 
 **2. Include the Nylo preset.** It brings `flutter_lints` with it, so this can
@@ -55,6 +55,41 @@ can't apply plugin fixes yet — that's an open item on the
 [analyzer plugin roadmap][roadmap].
 
 [roadmap]: https://github.com/dart-lang/sdk/issues/53402
+
+### Changing the rules
+
+The **On by default** column above is what the Nylo preset sets. To change any
+of it — switch `unlocalized_string` on, dial a severity down, drop a rule —
+declare the plugin in your own `analysis_options.yaml`. Your block replaces the
+preset's, so it has to name every rule you want: copy the `diagnostics:` map
+from [`nylo.yaml`](lib/nylo.yaml) and edit it.
+
+```yaml
+# analysis_options.yaml
+include: package:vibe_check/nylo.yaml   # keep: flutter_lints + companion lints
+plugins:
+  vibe_check:
+    version: ^1.0.1
+    diagnostics:
+      nonstandard_nylo_page: true
+      unlocalized_string: true          # switched on
+      inline_async_in_builder: true
+      swallowed_exception: warning      # true/false, or info / warning / error
+      redundant_null_check: false       # switched off
+```
+
+Rules you leave out stay off. `plugins` is a top-level section, not nested
+under `analyzer:`, and `analyzer: errors:` doesn't affect plugin rules —
+severities go in the `diagnostics` map as shown.
+
+To silence a single spot, use an ignore comment like with any lint:
+
+```dart
+// ignore: vibe_check/swallowed_exception
+} catch (e) {}
+
+// ignore_for_file: vibe_check/unlocalized_string
+```
 
 ### `nonstandard_nylo_page`
 
@@ -239,41 +274,6 @@ String greet(String name) => 'Hi $name';
 ```
 
 The quick-fix rewrites each form to its known result.
-
-## Changing the rules
-
-The Nylo preset turns on `nonstandard_nylo_page`, `inline_async_in_builder`,
-`swallowed_exception` and `redundant_null_check`, and lists
-`unlocalized_string` off. To change any of that, declare the plugin in your
-own `analysis_options.yaml`. Your block replaces the preset's, so it lists
-every rule — copy it from [`nylo.yaml`](lib/nylo.yaml) and edit:
-
-```yaml
-# analysis_options.yaml
-include: package:vibe_check/nylo.yaml   # keep: flutter_lints + companion lints
-plugins:
-  vibe_check:
-    version: ^1.0.0
-    diagnostics:
-      nonstandard_nylo_page: true
-      unlocalized_string: true          # switched on
-      inline_async_in_builder: true
-      swallowed_exception: warning      # true/false, or info / warning / error
-      redundant_null_check: false       # switched off
-```
-
-Rules you leave out stay off. `plugins` is a top-level section, not nested
-under `analyzer:`, and `analyzer: errors:` doesn't affect plugin rules —
-severities go in the `diagnostics` map as shown.
-
-To silence a single spot, use an ignore comment like with any lint:
-
-```dart
-// ignore: vibe_check/swallowed_exception
-} catch (e) {}
-
-// ignore_for_file: vibe_check/unlocalized_string
-```
 
 ## Where the findings show up
 

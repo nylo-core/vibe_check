@@ -1,3 +1,23 @@
+## [1.0.1] - 2026-09-12
+
+Documentation only — no rule, quick-fix or preset behaviour changed.
+
+### Changed
+
+- **The rule-configuration recipe now sits with the rules it configures.** The
+  README's "Changing the rules" — the `diagnostics:` map to copy out of
+  `nylo.yaml`, the values each entry accepts (`true`/`false`, `info`,
+  `warning`, `error`), the reminder that `plugins:` is top-level and
+  `analyzer: errors:` never reaches plugin diagnostics, and the `// ignore:`
+  comments — moved from the bottom of the file to directly beneath the rules
+  table, where the **On by default** column raises the question. It is now a
+  subsection of "The rules" rather than a top-level section, so the per-rule
+  sections still nest under that heading; the `#changing-the-rules` anchor is
+  unchanged, so links to it still resolve.
+- `nylo.yaml`'s note on switching `unlocalized_string` on pointed at a
+  "Configuration section" the README does not have — it now names "Changing
+  the rules".
+
 ## [1.0.0] - 2026-09-06
 
 Initial release: a small, trustworthy set of opt-in lint rules for the

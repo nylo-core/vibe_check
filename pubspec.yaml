@@ -1,6 +1,6 @@
 name: vibe_check
 description: Lints that catch AI-generated Dart slop — inline async in builders, redundant null checks, swallowed exceptions, and more.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/nylo-core/vibe_check
 homepage: https://nylo.dev
 issue_tracker: https://github.com/nylo-core/vibe_check/issues
